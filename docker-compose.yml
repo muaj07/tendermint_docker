@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  node0-tendermint:
+    container_name: node0-tendermint
+    image: "tendermint/tendermint"
+    ports:
+      - "26656-26657:26656-26657"
+      
+
+    environment:
+      - ID=0
+      - LOG=${LOG:-tendermint.log}
+   
+    command: 
+      node unsafe_reset_all
+      node --proxy_app=tcp://node0-application:26658
+      #node --rpc.laddr "tcp://0.0.0.0:26657" --log_level="*:debug"
+
+    networks:
+      localnet:
+        ipv4_address: 192.166.10.2
+    
+  
+  client:
+    container_name: client
+    image: my_image
+    
+    #entrypoint: [bash ,-c,"sleep  5 && python3 /build/app/client.py --node_port 26657 --node_ip 192.166.10.2 Register PE01 Address01no"]
+    entrypoint: [tail,-f, /dev/null]
+    networks:
+      localnet:
+        ipv4_address: 192.166.10.3
+  
+  node0-application:
+    container_name: node0-application
+    image: my_image  
+    ports:
+      - "26658:26658"
+    networks:
+      localnet:
+        ipv4_address: 192.166.10.4
+
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.166.10.0/16
+  
+
